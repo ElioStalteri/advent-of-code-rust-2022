@@ -1,6 +1,6 @@
 use regex::Regex;
 
-fn decode_input(input: &str) -> (Vec<Vec<i32>>, Vec<Vec<&str>>) {
+pub fn part_one(input: &str) -> Option<String> {
     let input = input.split("\n\n").collect::<Vec<&str>>();
 
     let re = Regex::new(r"move (\d+) from (\d+) to (\d+)").unwrap();
@@ -28,12 +28,6 @@ fn decode_input(input: &str) -> (Vec<Vec<i32>>, Vec<Vec<&str>>) {
             }
         }
     }
-
-    (movements,storage)
-}
-
-pub fn part_one(input: &str) -> Option<String> {
-    let (movements, mut storage) = decode_input(input);
 
     for movement in movements {
         let amount = movement[0];

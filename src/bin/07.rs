@@ -63,8 +63,15 @@ where
         idx
     }
 
-    fn compute_node_size(&mut self, threshold:i128) {
+    fn get_total_size(&self) -> i128 {
+        self.arena
+            .iter()
+            .filter(|x| x.children.is_empty())
+            .map(|x| x.val.value.unwrap())
+            .sum()
+    }
 
+    fn compute_node_size(&mut self, threshold: i128) {
         let arena = self.arena.clone();
 
         let leafs = arena.iter().filter(|x| x.children.is_empty());
@@ -77,7 +84,6 @@ where
                 map.insert(leaf.parent.unwrap(), leaf.val.value.unwrap());
             }
         }
-
 
         loop {
             let mut nested_map: HashMap<usize, i128> = HashMap::new();
@@ -157,8 +163,13 @@ pub fn part_one(input: &str) -> Option<i128> {
     }
 
     tree.compute_node_size(100000_i128);
-    
-    let tmp: Vec<Folder> = tree.arena.iter().filter(|x| !x.children.is_empty() && x.val.value < Some(100000)).map(|x| x.val.clone()).collect();
+
+    let tmp: Vec<Folder> = tree
+        .arena
+        .iter()
+        .filter(|x| !x.children.is_empty() && x.val.value < Some(100000))
+        .map(|x| x.val.clone())
+        .collect();
     Some(tmp.iter().map(|x| x.value.unwrap_or(0)).sum())
 }
 
@@ -213,11 +224,20 @@ pub fn part_two(input: &str) -> Option<i128> {
         }
     }
 
+
+    let min_space_to_empty = 30000000 - (70000000 - tree.get_total_size());
+    // 27364677 too high fuck!!
+    // 30000000
     tree.compute_node_size(30000000);
-    
-    let tmp: Option<i128> = tree.arena.iter().filter(|x| !x.children.is_empty() && x.val.value < Some(30000000)).map(|x| x.val.value.unwrap()).max();
-    // Some(tmp.iter().map(|x| x.value.unwrap_or(0)).sum())
-    None
+
+    let tmp: Option<i128> = tree
+        .arena
+        .iter()
+        .filter(|x| !x.children.is_empty() && x.val.value >= Some(min_space_to_empty))
+        .map(|x| x.val.value.unwrap())
+        .min();
+    tmp
+    // None
 }
 
 fn main() {
@@ -239,6 +259,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let input = aoc::read_file("examples", 7);
-        assert_eq!(part_two(&input), None);
+        assert_eq!(part_two(&input), Some(24933642));
     }
 }

@@ -63,19 +63,7 @@ where
         idx
     }
 
-    fn compute_node_size(&mut self) {
-        // if node.value.is_some() {
-        //     return node.value.unwrap();
-        // }
-
-        // let idx = self.node(node);
-        // let sum = self.arena[idx]
-        //     .children.clone()
-        //     .iter()
-        //     .map(|&n| self.compute_node_size(self.arena[n].val.clone())).sum();
-        // self.arena[idx].val.value = Some(sum);
-
-        // sum
+    fn compute_node_size(&mut self, threshold:i128) {
 
         let arena = self.arena.clone();
 
@@ -90,45 +78,30 @@ where
             }
         }
 
-        loop{
+
+        loop {
             let mut nested_map: HashMap<usize, i128> = HashMap::new();
-    
-            for (key, val) in map.iter().filter(|(k,v)| v<=&&100000_i128) {
-                self.arena[*key].val.value = Some(*val);
+
+            for (key, val) in map.iter() {
+                let prev = self.arena[*key].val.value.unwrap_or(0);
+                self.arena[*key].val.value = Some(*val + prev);
+                let new_val = self.arena[*key].val.value.unwrap_or(0);
+                // dbg!(self.arena[*key].clone());
                 let parent = self.arena[*key].parent;
-                if parent.is_some(){
+                if parent.is_some() {
                     if let Some(x) = nested_map.get_mut(&parent.unwrap()) {
-                        *x += *val;
+                        *x += new_val;
                     } else {
-                        nested_map.insert(parent.unwrap(), *val);
+                        nested_map.insert(parent.unwrap(), new_val);
                     }
                 }
             }
-    
+
             map = nested_map;
-            if map.values().filter(|v| v<=&&100000_i128).count() == 0{
+            if map.values().filter(|v| v <= &&threshold).count() == 0 {
                 break;
             }
         }
-
-
-        
-        dbg!(map.values().filter(|v| v<=&&100000_i128).count());
-        dbg!(map.values().count());
-
-        // for leaf in leafs {
-        //     if leaf.parent.is_some(){
-        //         self.arena[leaf.parent.unwrap()].val.value = Some(self.arena[leaf.parent.unwrap()].val.value.unwrap_or(0) + leaf.val.value.unwrap_or(0));
-        //         let mut current = self.arena[leaf.parent.unwrap()].clone();
-        //         loop {
-        //             if current.parent.is_none(){
-        //                 break;
-        //             }
-        //             self.arena[current.parent.unwrap()].val.value = Some(self.arena[current.parent.unwrap()].val.value.unwrap_or(0) + current.val.value.unwrap_or(0));
-        //             current = self.arena[current.parent.unwrap()].clone();
-        //         }
-        //     }
-        // }
     }
 }
 
@@ -146,8 +119,12 @@ pub fn part_one(input: &str) -> Option<i128> {
                     if command[2] == ".." && current.is_some() {
                         current = tree.arena[current.unwrap()].parent
                     } else {
+                        let mut path = "";
+                        if current.is_some() {
+                            path = &tree.arena[current.unwrap()].val.name;
+                        }
                         let new = tree.node(Folder {
-                            name: command[2].to_string(),
+                            name: path.to_string() + "/" + &command[2].replace("/", "~"),
                             value: None,
                         });
                         if current.is_some() {
@@ -162,9 +139,13 @@ pub fn part_one(input: &str) -> Option<i128> {
                 // do nothing
             }
             _ => {
+                let mut path = "";
+                if current.is_some() {
+                    path = &tree.arena[current.unwrap()].val.name;
+                }
                 // create child leaf node
                 let new = tree.node(Folder {
-                    name: command[1].to_string(),
+                    name: path.to_string() + "/" + command[1],
                     value: command[0].parse::<i128>().ok(),
                 });
                 if current.is_some() {
@@ -175,15 +156,67 @@ pub fn part_one(input: &str) -> Option<i128> {
         }
     }
 
-    tree.compute_node_size();
-
-    // let tmp: Vec<Folder> = tree.arena.iter().filter(|x| !x.children.is_empty() && x.val.value < Some(100000)).map(|x| x.val.clone()).collect();
-
-    // Some(tmp.iter().map(|x| x.value.unwrap_or(0)).sum())
-    None
+    tree.compute_node_size(100000_i128);
+    
+    let tmp: Vec<Folder> = tree.arena.iter().filter(|x| !x.children.is_empty() && x.val.value < Some(100000)).map(|x| x.val.clone()).collect();
+    Some(tmp.iter().map(|x| x.value.unwrap_or(0)).sum())
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
+pub fn part_two(input: &str) -> Option<i128> {
+    let lines = input.split('\n');
+
+    let mut tree: ArenaTree<Folder> = ArenaTree::default();
+    let mut current: Option<usize> = None;
+
+    for line in lines {
+        let command: Vec<&str> = line.split(' ').collect();
+        match command[0] {
+            "$" => {
+                if command[1] == "cd" {
+                    if command[2] == ".." && current.is_some() {
+                        current = tree.arena[current.unwrap()].parent
+                    } else {
+                        let mut path = "";
+                        if current.is_some() {
+                            path = &tree.arena[current.unwrap()].val.name;
+                        }
+                        let new = tree.node(Folder {
+                            name: path.to_string() + "/" + &command[2].replace("/", "~"),
+                            value: None,
+                        });
+                        if current.is_some() {
+                            tree.arena[current.unwrap()].children.push(new);
+                        }
+                        tree.arena[new].parent = current;
+                        current = Some(new);
+                    }
+                }
+            }
+            "dir" => {
+                // do nothing
+            }
+            _ => {
+                let mut path = "";
+                if current.is_some() {
+                    path = &tree.arena[current.unwrap()].val.name;
+                }
+                // create child leaf node
+                let new = tree.node(Folder {
+                    name: path.to_string() + "/" + command[1],
+                    value: command[0].parse::<i128>().ok(),
+                });
+                if current.is_some() {
+                    tree.arena[current.unwrap()].children.push(new);
+                }
+                tree.arena[new].parent = current;
+            }
+        }
+    }
+
+    tree.compute_node_size(30000000);
+    
+    let tmp: Option<i128> = tree.arena.iter().filter(|x| !x.children.is_empty() && x.val.value < Some(30000000)).map(|x| x.val.value.unwrap()).max();
+    // Some(tmp.iter().map(|x| x.value.unwrap_or(0)).sum())
     None
 }
 

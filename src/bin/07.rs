@@ -80,7 +80,7 @@ where
 
         for leaf in leafs {
             if leaf.parent.is_some(){
-                self.arena[leaf.parent.unwrap()].val.value = self.arena[leaf.parent.unwrap()].val.value.unwrap_or(0) + leaf.val.value.unwrap();
+                self.arena[leaf.parent.unwrap()].val.value = Some(self.arena[leaf.parent.unwrap()].val.value.unwrap_or(0) + leaf.val.value.unwrap_or(0));
                 let mut current = self.arena[leaf.parent.unwrap()].clone();
                 
             }

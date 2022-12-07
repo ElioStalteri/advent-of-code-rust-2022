@@ -1,7 +1,10 @@
+use std::collections::HashMap;
+
+use itertools::Itertools;
 #[derive(Debug, Default, Clone)]
 struct Folder {
     pub name: String,
-    pub value: Option<i32>,
+    pub value: Option<i128>,
 }
 
 impl PartialEq<Folder> for Folder {
@@ -10,7 +13,7 @@ impl PartialEq<Folder> for Folder {
     }
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 struct Node<Folder>
 where
     Folder: PartialEq,
@@ -60,7 +63,7 @@ where
         idx
     }
 
-    fn compute_node_size(&mut self, node: Folder)  {
+    fn compute_node_size(&mut self) {
         // if node.value.is_some() {
         //     return node.value.unwrap();
         // }
@@ -78,18 +81,58 @@ where
 
         let leafs = arena.iter().filter(|x| x.children.is_empty());
 
+        let mut map: HashMap<usize, i128> = HashMap::new();
         for leaf in leafs {
-            if leaf.parent.is_some(){
-                self.arena[leaf.parent.unwrap()].val.value = Some(self.arena[leaf.parent.unwrap()].val.value.unwrap_or(0) + leaf.val.value.unwrap_or(0));
-                let mut current = self.arena[leaf.parent.unwrap()].clone();
-                
+            if let Some(x) = map.get_mut(&leaf.parent.unwrap()) {
+                *x += leaf.val.value.unwrap();
+            } else {
+                map.insert(leaf.parent.unwrap(), leaf.val.value.unwrap());
             }
         }
 
+        loop{
+            let mut nested_map: HashMap<usize, i128> = HashMap::new();
+    
+            for (key, val) in map.iter().filter(|(k,v)| v<=&&100000_i128) {
+                self.arena[*key].val.value = Some(*val);
+                let parent = self.arena[*key].parent;
+                if parent.is_some(){
+                    if let Some(x) = nested_map.get_mut(&parent.unwrap()) {
+                        *x += *val;
+                    } else {
+                        nested_map.insert(parent.unwrap(), *val);
+                    }
+                }
+            }
+    
+            map = nested_map;
+            if map.values().filter(|v| v<=&&100000_i128).count() == 0{
+                break;
+            }
+        }
+
+
+        
+        dbg!(map.values().filter(|v| v<=&&100000_i128).count());
+        dbg!(map.values().count());
+
+        // for leaf in leafs {
+        //     if leaf.parent.is_some(){
+        //         self.arena[leaf.parent.unwrap()].val.value = Some(self.arena[leaf.parent.unwrap()].val.value.unwrap_or(0) + leaf.val.value.unwrap_or(0));
+        //         let mut current = self.arena[leaf.parent.unwrap()].clone();
+        //         loop {
+        //             if current.parent.is_none(){
+        //                 break;
+        //             }
+        //             self.arena[current.parent.unwrap()].val.value = Some(self.arena[current.parent.unwrap()].val.value.unwrap_or(0) + current.val.value.unwrap_or(0));
+        //             current = self.arena[current.parent.unwrap()].clone();
+        //         }
+        //     }
+        // }
     }
 }
 
-pub fn part_one(input: &str) -> Option<i32> {
+pub fn part_one(input: &str) -> Option<i128> {
     let lines = input.split('\n');
 
     let mut tree: ArenaTree<Folder> = ArenaTree::default();
@@ -122,7 +165,7 @@ pub fn part_one(input: &str) -> Option<i32> {
                 // create child leaf node
                 let new = tree.node(Folder {
                     name: command[1].to_string(),
-                    value: command[0].parse::<i32>().ok(),
+                    value: command[0].parse::<i128>().ok(),
                 });
                 if current.is_some() {
                     tree.arena[current.unwrap()].children.push(new);
@@ -132,19 +175,10 @@ pub fn part_one(input: &str) -> Option<i32> {
         }
     }
 
-    let root = tree
-        .arena
-        .iter()
-        .find(|n| n.parent.is_none())
-        .unwrap()
-        .val
-        .clone();
+    tree.compute_node_size();
 
-    tree.compute_node_size(root);
-
-    
     // let tmp: Vec<Folder> = tree.arena.iter().filter(|x| !x.children.is_empty() && x.val.value < Some(100000)).map(|x| x.val.clone()).collect();
-    
+
     // Some(tmp.iter().map(|x| x.value.unwrap_or(0)).sum())
     None
 }

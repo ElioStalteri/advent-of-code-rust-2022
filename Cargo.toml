@@ -9,3 +9,4 @@ default-run = "aoc"
 [dependencies]
 pico-args = "0.5.0"
 regex = "1"
+itertools = "0.10.5"

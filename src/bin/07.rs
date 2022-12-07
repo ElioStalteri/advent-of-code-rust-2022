@@ -226,8 +226,8 @@ pub fn part_two(input: &str) -> Option<i128> {
 
 
     let min_space_to_empty = 30000000 - (70000000 - tree.get_total_size());
-    // 27364677 too high fuck!!
-    // 30000000
+    
+    
     tree.compute_node_size(30000000);
 
     let tmp: Option<i128> = tree

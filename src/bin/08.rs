@@ -10,12 +10,13 @@ pub fn part_one(input: &str) -> Option<i32> {
         })
         .collect();
 
-    let outside_trees = (trees.len() + trees[0].len()) as i32;
+    let outside_trees = ((trees.len() + trees[0].len()) * 2) as i32;
 
     let mut max = -1;
-    let visible_from_right: Vec<Vec<i32>> = trees
+    let visible_from_left: Vec<Vec<i32>> = trees
         .iter()
         .map(|row| {
+            max = -1;
             row.iter()
                 .map(|v| {
                     if v > &max {
@@ -29,9 +30,10 @@ pub fn part_one(input: &str) -> Option<i32> {
         .collect();
 
     max = -1;
-    let visible_from_left: Vec<Vec<i32>> = trees
+    let visible_from_right: Vec<Vec<i32>> = trees
         .iter()
         .map(|r| {
+            max = -1;
             let mut row = r.clone();
             row.reverse();
             row = row
@@ -48,6 +50,8 @@ pub fn part_one(input: &str) -> Option<i32> {
             row
         })
         .collect();
+
+    dbg!(visible_from_right.clone());
 
     let mut max: Vec<i32> = vec![-1; trees[0].len()];
     let visible_from_top: Vec<Vec<i32>> = trees

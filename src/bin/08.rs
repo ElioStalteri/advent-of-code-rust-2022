@@ -10,7 +10,7 @@ pub fn part_one(input: &str) -> Option<i32> {
         })
         .collect();
 
-    let outside_trees = ((trees.len() + trees[0].len()) * 2) as i32;
+    let outside_trees = ((trees.len() + trees[0].len() - 2) * 2) as i32;
 
     let mut max = -1;
     let visible_from_left: Vec<Vec<i32>> = trees

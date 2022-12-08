@@ -115,7 +115,7 @@ pub fn part_one(input: &str) -> Option<i32> {
     Some(count_visibles + outside_trees)
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
+pub fn part_two(input: &str) -> Option<i32> {
     let trees: Vec<Vec<i32>> = input
         .split('\n')
         .map(|v| {
@@ -180,7 +180,6 @@ pub fn part_two(input: &str) -> Option<u32> {
         })
         .collect();
 
-
     let mut max: Vec<Vec<i32>> = vec![vec![]; trees[0].len()];
     let visible_from_top: Vec<Vec<i32>> = trees
         .iter()
@@ -205,8 +204,6 @@ pub fn part_two(input: &str) -> Option<u32> {
                 .collect()
         })
         .collect();
-
-    
 
     let mut max: Vec<Vec<i32>> = vec![vec![]; trees[0].len()];
     let visible_from_bottom: Vec<Vec<i32>> = {
@@ -241,28 +238,22 @@ pub fn part_two(input: &str) -> Option<u32> {
         tmp
     };
 
+    let mut max: i32 = 0;
+    for (ir, row) in trees.iter().enumerate() {
+        for (ic, v) in row.iter().enumerate() {
+            if ic != 0 && ic != row.len() - 1 && ir != 0 && ir != trees.len() - 1 {
+                let newM = visible_from_right[ir][ic]
+                    * visible_from_left[ir][ic]
+                    * visible_from_top[ir][ic]
+                    * visible_from_bottom[ir][ic];
+                if newM > max {
+                    max = newM
+                }
+            }
+        }
+    }
 
-
-    // let mut count_visibles_coord: Vec<Vec<usize>> = vec![];
-    // let mut count_visibles = 0;
-    // for (ir, row) in trees.iter().enumerate() {
-    //     for (ic, v) in row.iter().enumerate() {
-    //         if ic != 0
-    //             && ic != row.len() - 1
-    //             && ir != 0
-    //             && ir != trees.len() - 1
-    //             && (visible_from_right[ir][ic] > -1
-    //                 || visible_from_left[ir][ic] > -1
-    //                 || visible_from_top[ir][ic] > -1
-    //                 || visible_from_bottom[ir][ic] > -1)
-    //         {
-    //             count_visibles += 1;
-    //             count_visibles_coord.push(vec![ir, ic]);
-    //         }
-    //     }
-    // }
-
-    None
+    Some(max)
 }
 
 fn main() {
@@ -284,6 +275,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let input = aoc::read_file("examples", 8);
-        assert_eq!(part_two(&input), None);
+        assert_eq!(part_two(&input), Some(8));
     }
 }

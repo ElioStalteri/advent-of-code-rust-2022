@@ -1,8 +1,10 @@
 use itertools::Itertools;
+use rgb::*;
 use std::{
     cmp::max,
     hash::{Hash, Hasher},
 };
+use textplots::{Chart, ColorPlot, Plot, Shape};
 
 #[derive(Debug, Default, Clone)]
 struct Movement<'a> {
@@ -110,11 +112,16 @@ pub fn part_two(input: &str) -> Option<i32> {
         .collect();
     let number_of_coords = 10;
 
-
     let mut coords: Vec<Coord> = vec![];
     for _ in 0..number_of_coords {
         coords.push(Coord { x: 0, y: 0 });
     }
+
+    let term = console::Term::stdout();
+    term.hide_cursor().unwrap();
+    term.clear_screen().unwrap();
+
+
     let mut history = vec![Coord { x: 0, y: 0 }];
     for m in movements {
         for _ in 0..m.repeat {
@@ -144,12 +151,47 @@ pub fn part_two(input: &str) -> Option<i32> {
                 }
             }
         }
-    }
+    
+        term.move_cursor_to(0, 0).unwrap();
+        Chart::new_with_y_range(180, 60, -200.0 + 300.0, 100.0 + 300.0, 200.0 + -200.0,200.0+70.0)
+        .linecolorplot(
+            &Shape::Lines(
+                coords
+                    .iter()
+                    .map(|c| (300.0 + c.x as f32, 200.0 + c.y as f32))
+                    .collect_vec()
+                    .as_slice(),
+            ),
+            RGB8 {
+                r: 255_u8,
+                g: 0,
+                b: 0,
+            },
+        ).nice();
 
-    // dbg!(history.clone());
+        std::thread::sleep(std::time::Duration::from_millis(20));
+    }
 
     // 2743 too high
     // 2531 too low
+    Chart::new(180, 60, -300.0, 300.0)
+        .linecolorplot(
+            &Shape::Lines(
+                history
+                    .iter()
+                    .map(|c| (c.x as f32, c.y as f32))
+                    .collect_vec()
+                    .as_slice(),
+            ),
+            RGB8 {
+                r: 255_u8,
+                g: 0,
+                b: 0,
+            },
+        )
+        .display();
+
+        
     Some(history.iter().unique().count() as i32)
 }
 

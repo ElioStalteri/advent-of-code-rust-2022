@@ -35,7 +35,7 @@ impl Coord {
     pub fn follow(&mut self, o: &Coord, history: Option<&mut Vec<Coord>>) -> Coord {
         let dist_x = o.x - self.x;
         let dist_y = o.y - self.y;
-        if dist_x.abs() > 1 && dist_y.abs() > 1{
+        if dist_x.abs() > 1 && dist_y.abs() > 1 {
             self.x += dist_x - dist_x.signum();
             self.y += dist_y - dist_y.signum();
             if history.is_some() {
@@ -130,7 +130,6 @@ pub fn part_two(input: &str) -> Option<i32> {
     term.hide_cursor().unwrap();
     term.clear_screen().unwrap();
 
-
     let mut history = vec![Coord { x: 0, y: 0 }];
     for m in movements {
         for _ in 0..m.repeat {
@@ -160,14 +159,28 @@ pub fn part_two(input: &str) -> Option<i32> {
                 }
             }
         }
-    
+
         term.move_cursor_to(0, 0).unwrap();
-        Chart::new_with_y_range(180, 60, -200.0 + 300.0, 100.0 + 300.0, 200.0 + -200.0,200.0+70.0)
+        // let cx = coords.iter().map(|c| c.x);
+        // let cy = coords.iter().map(|c| c.y);
+        let offset = 300.0;
+        let cx_min = -170.0; //cx.clone().min().unwrap() as f32;
+        let cx_max = 90.0; // cx.max().unwrap() as f32;
+        let cy_min = -180.0; // cy.clone().min().unwrap() as f32;
+        let cy_max = 100.0; // cy.max().unwrap() as f32;
+        Chart::new_with_y_range(
+            180,
+            60,
+            cx_min - 20.0 + offset,
+            cx_max + 20.0 + offset,
+            cy_min - 20.0 + offset,
+            cy_max + 20.0 + offset,
+        )
         .linecolorplot(
             &Shape::Lines(
                 coords
                     .iter()
-                    .map(|c| (300.0 + c.x as f32, 200.0 + c.y as f32))
+                    .map(|c| (offset + c.x as f32,offset + c.y as f32))
                     .collect_vec()
                     .as_slice(),
             ),
@@ -176,7 +189,8 @@ pub fn part_two(input: &str) -> Option<i32> {
                 g: 0,
                 b: 0,
             },
-        ).nice();
+        )
+        .nice();
 
         std::thread::sleep(std::time::Duration::from_millis(20));
     }
@@ -200,7 +214,6 @@ pub fn part_two(input: &str) -> Option<i32> {
         )
         .display();
 
-        
     Some(history.iter().unique().count() as i32)
 }
 

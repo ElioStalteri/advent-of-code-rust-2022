@@ -35,7 +35,16 @@ impl Coord {
     pub fn follow(&mut self, o: &Coord, history: Option<&mut Vec<Coord>>) -> Coord {
         let dist_x = o.x - self.x;
         let dist_y = o.y - self.y;
-        if dist_x.abs() > 1 {
+        if dist_x.abs() > 1 && dist_y.abs() > 1{
+            self.x += dist_x - dist_x.signum();
+            self.y += dist_y - dist_y.signum();
+            if history.is_some() {
+                history.unwrap().push(Coord {
+                    x: self.x,
+                    y: self.y,
+                });
+            }
+        } else if dist_x.abs() > 1 {
             self.x += dist_x - dist_x.signum();
             self.y = o.y;
             if history.is_some() {

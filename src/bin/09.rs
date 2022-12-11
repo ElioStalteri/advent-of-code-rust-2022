@@ -160,39 +160,39 @@ pub fn part_two(input: &str) -> Option<i32> {
             }
         }
 
-        term.move_cursor_to(0, 0).unwrap();
-        // let cx = coords.iter().map(|c| c.x);
-        // let cy = coords.iter().map(|c| c.y);
-        let offset = 300.0;
-        let cx_min = -170.0; //cx.clone().min().unwrap() as f32;
-        let cx_max = 90.0; // cx.max().unwrap() as f32;
-        let cy_min = -180.0; // cy.clone().min().unwrap() as f32;
-        let cy_max = 100.0; // cy.max().unwrap() as f32;
-        Chart::new_with_y_range(
-            180,
-            60,
-            cx_min - 20.0 + offset,
-            cx_max + 20.0 + offset,
-            cy_min - 20.0 + offset,
-            cy_max + 20.0 + offset,
-        )
-        .linecolorplot(
-            &Shape::Lines(
-                coords
-                    .iter()
-                    .map(|c| (offset + c.x as f32,offset + c.y as f32))
-                    .collect_vec()
-                    .as_slice(),
-            ),
-            RGB8 {
-                r: 255_u8,
-                g: 0,
-                b: 0,
-            },
-        )
-        .nice();
+        // term.move_cursor_to(0, 0).unwrap();
+        // // let cx = coords.iter().map(|c| c.x);
+        // // let cy = coords.iter().map(|c| c.y);
+        // let offset = 300.0;
+        // let cx_min = -170.0; //cx.clone().min().unwrap() as f32;
+        // let cx_max = 90.0; // cx.max().unwrap() as f32;
+        // let cy_min = -180.0; // cy.clone().min().unwrap() as f32;
+        // let cy_max = 100.0; // cy.max().unwrap() as f32;
+        // Chart::new_with_y_range(
+        //     180,
+        //     60,
+        //     cx_min - 20.0 + offset,
+        //     cx_max + 20.0 + offset,
+        //     cy_min - 20.0 + offset,
+        //     cy_max + 20.0 + offset,
+        // )
+        // .linecolorplot(
+        //     &Shape::Lines(
+        //         coords
+        //             .iter()
+        //             .map(|c| (offset + c.x as f32,offset + c.y as f32))
+        //             .collect_vec()
+        //             .as_slice(),
+        //     ),
+        //     RGB8 {
+        //         r: 255_u8,
+        //         g: 0,
+        //         b: 0,
+        //     },
+        // )
+        // .nice();
 
-        std::thread::sleep(std::time::Duration::from_millis(20));
+        // std::thread::sleep(std::time::Duration::from_millis(20));
     }
 
     // 2743 too high

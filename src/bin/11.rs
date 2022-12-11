@@ -3,10 +3,10 @@ use regex::Regex;
 
 #[derive(Debug, Default, Clone)]
 struct Monkey {
-    items: Vec<i32>,
+    items: Vec<i128>,
     fomula_is_addition: bool,
     fomula_second_term: String,
-    divisible_by: i32,
+    divisible_by: i128,
     if_true: usize,
     if_false: usize,
 }
@@ -33,7 +33,7 @@ fn map_monkeys(input: &str) -> Vec<Monkey> {
                     .last()
                     .unwrap()
                     .split(',')
-                    .map(|v| v.trim().parse::<i32>().ok().unwrap())
+                    .map(|v| v.trim().parse::<i128>().ok().unwrap())
                     .collect_vec(),
                 fomula_is_addition: additions,
                 fomula_second_term: operation.split(' ').last().unwrap().to_string(),
@@ -43,7 +43,7 @@ fn map_monkeys(input: &str) -> Vec<Monkey> {
                     .split(' ')
                     .last()
                     .unwrap()
-                    .parse::<i32>()
+                    .parse::<i128>()
                     .ok()
                     .unwrap(),
                 if_true: caps
@@ -69,24 +69,33 @@ fn map_monkeys(input: &str) -> Vec<Monkey> {
         .collect()
 }
 
-pub fn part_one(input: &str) -> Option<u32> {
+pub fn part_one(input: &str) -> Option<i128> {
     let mut monkeys: Vec<Monkey> = map_monkeys(input);
 
+    let mut monkeys_number_of_inpections :Vec<i128>= monkeys.iter().map(|_| 0).collect();
+
+
+    // Monkey inspects an item with a worry level of 79.
+    // Worry level is multiplied by 19 to 1501.
+    // Monkey gets bored with item. Worry level is divided by 3 to 500.
+    // Current worry level is not divisible by 23.
+    // Item with worry level 500 is thrown to monkey 3.
     for _ in 1..21 {
         for im in 0..monkeys.len() {
             let mnk = monkeys[im].clone();
             for item in mnk.items.iter() {
-                let mut new_item:i32;
+                monkeys_number_of_inpections[im] += 1;
+                let mut new_item:i128;
                 if mnk.fomula_is_addition {
                     if mnk.fomula_second_term == "old" {
                         new_item = item + item;
                     }else{
-                        new_item = item + mnk.fomula_second_term.parse::<i32>().ok().unwrap();
+                        new_item = item + mnk.fomula_second_term.parse::<i128>().ok().unwrap();
                     }
                 } else if mnk.fomula_second_term == "old" {
                     new_item = item * item;
                 }else{
-                    new_item = item * mnk.fomula_second_term.parse::<i32>().ok().unwrap();
+                    new_item = item * mnk.fomula_second_term.parse::<i128>().ok().unwrap();
                 }
                 new_item /= 3;
                 if new_item % mnk.divisible_by == 0 {
@@ -99,19 +108,59 @@ pub fn part_one(input: &str) -> Option<u32> {
         }
     }
 
-    dbg!(monkeys.clone());
 
+    monkeys_number_of_inpections.sort();
+    monkeys_number_of_inpections.reverse();
 
+    Some(monkeys_number_of_inpections[0] * monkeys_number_of_inpections[1])
+}
+
+pub fn part_two(input: &str) -> Option<u32> {
+    let mut monkeys: Vec<Monkey> = map_monkeys(input);
+
+    let mut monkeys_number_of_inpections :Vec<i128>= monkeys.iter().map(|_| 0).collect();
+
+    
     // Monkey inspects an item with a worry level of 79.
     // Worry level is multiplied by 19 to 1501.
     // Monkey gets bored with item. Worry level is divided by 3 to 500.
     // Current worry level is not divisible by 23.
     // Item with worry level 500 is thrown to monkey 3.
+    for _ in 1..1000 {
+        for im in 0..monkeys.len() {
+            let mnk = monkeys[im].clone();
+            for item in mnk.items.iter() {
+                monkeys_number_of_inpections[im] += 1;
+                let new_item:i128;
+                if mnk.fomula_is_addition {
+                    if mnk.fomula_second_term == "old" {
+                        new_item = item + item;
+                    }else{
+                        new_item = item + mnk.fomula_second_term.parse::<i128>().ok().unwrap();
+                    }
+                } else if mnk.fomula_second_term == "old" {
+                    new_item = item * item;
+                }else{
+                    new_item = item * mnk.fomula_second_term.parse::<i128>().ok().unwrap();
+                }
+                dbg!(new_item);
+                dbg!(mnk.divisible_by);
+                dbg!(new_item % mnk.divisible_by);
+                if new_item % mnk.divisible_by == 0 {
+                    monkeys[mnk.if_true].items.push(new_item);
+                }else{
+                    monkeys[mnk.if_false].items.push(new_item);
+                }
+            }
+            monkeys[im].items = vec![];
+        }
+    }
 
-    None
-}
 
-pub fn part_two(input: &str) -> Option<u32> {
+    // monkeys_number_of_inpections.sort();
+    // monkeys_number_of_inpections.reverse();
+
+    dbg!(monkeys_number_of_inpections);
     None
 }
 
@@ -128,7 +177,7 @@ mod tests {
     #[test]
     fn test_part_one() {
         let input = aoc::read_file("examples", 11);
-        assert_eq!(part_one(&input), None);
+        assert_eq!(part_one(&input), Some(10605));
     }
 
     #[test]

@@ -72,8 +72,7 @@ fn map_monkeys(input: &str) -> Vec<Monkey> {
 pub fn part_one(input: &str) -> Option<i128> {
     let mut monkeys: Vec<Monkey> = map_monkeys(input);
 
-    let mut monkeys_number_of_inpections :Vec<i128>= monkeys.iter().map(|_| 0).collect();
-
+    let mut monkeys_number_of_inpections: Vec<i128> = monkeys.iter().map(|_| 0).collect();
 
     // Monkey inspects an item with a worry level of 79.
     // Worry level is multiplied by 19 to 1501.
@@ -85,29 +84,28 @@ pub fn part_one(input: &str) -> Option<i128> {
             let mnk = monkeys[im].clone();
             for item in mnk.items.iter() {
                 monkeys_number_of_inpections[im] += 1;
-                let mut new_item:i128;
+                let mut new_item: i128;
                 if mnk.fomula_is_addition {
                     if mnk.fomula_second_term == "old" {
                         new_item = item + item;
-                    }else{
+                    } else {
                         new_item = item + mnk.fomula_second_term.parse::<i128>().ok().unwrap();
                     }
                 } else if mnk.fomula_second_term == "old" {
                     new_item = item * item;
-                }else{
+                } else {
                     new_item = item * mnk.fomula_second_term.parse::<i128>().ok().unwrap();
                 }
                 new_item /= 3;
                 if new_item % mnk.divisible_by == 0 {
                     monkeys[mnk.if_true].items.push(new_item);
-                }else{
+                } else {
                     monkeys[mnk.if_false].items.push(new_item);
                 }
             }
             monkeys[im].items = vec![];
         }
     }
-
 
     monkeys_number_of_inpections.sort();
     monkeys_number_of_inpections.reverse();
@@ -115,40 +113,43 @@ pub fn part_one(input: &str) -> Option<i128> {
     Some(monkeys_number_of_inpections[0] * monkeys_number_of_inpections[1])
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
+pub fn part_two(input: &str) -> Option<i128> {
     let mut monkeys: Vec<Monkey> = map_monkeys(input);
 
-    let mut monkeys_number_of_inpections :Vec<i128>= monkeys.iter().map(|_| 0).collect();
+    let mut monkeys_number_of_inpections: Vec<i128> = monkeys.iter().map(|_| 0).collect();
 
-    
     // Monkey inspects an item with a worry level of 79.
     // Worry level is multiplied by 19 to 1501.
     // Monkey gets bored with item. Worry level is divided by 3 to 500.
     // Current worry level is not divisible by 23.
     // Item with worry level 500 is thrown to monkey 3.
-    for _ in 1..1000 {
+
+    let mut common_test = 1;
+    for monkey in &monkeys {
+        common_test *= monkey.divisible_by;
+    }
+
+    for _ in 1..10001 {
         for im in 0..monkeys.len() {
             let mnk = monkeys[im].clone();
             for item in mnk.items.iter() {
                 monkeys_number_of_inpections[im] += 1;
-                let new_item:i128;
+                let mut new_item: i128;
                 if mnk.fomula_is_addition {
                     if mnk.fomula_second_term == "old" {
                         new_item = item + item;
-                    }else{
+                    } else {
                         new_item = item + mnk.fomula_second_term.parse::<i128>().ok().unwrap();
                     }
                 } else if mnk.fomula_second_term == "old" {
                     new_item = item * item;
-                }else{
+                } else {
                     new_item = item * mnk.fomula_second_term.parse::<i128>().ok().unwrap();
                 }
-                dbg!(new_item);
-                dbg!(mnk.divisible_by);
-                dbg!(new_item % mnk.divisible_by);
+                new_item %= common_test;
                 if new_item % mnk.divisible_by == 0 {
                     monkeys[mnk.if_true].items.push(new_item);
-                }else{
+                } else {
                     monkeys[mnk.if_false].items.push(new_item);
                 }
             }
@@ -156,12 +157,10 @@ pub fn part_two(input: &str) -> Option<u32> {
         }
     }
 
+    monkeys_number_of_inpections.sort();
+    monkeys_number_of_inpections.reverse();
 
-    // monkeys_number_of_inpections.sort();
-    // monkeys_number_of_inpections.reverse();
-
-    dbg!(monkeys_number_of_inpections);
-    None
+    Some(monkeys_number_of_inpections[0] * monkeys_number_of_inpections[1])
 }
 
 fn main() {
@@ -183,6 +182,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let input = aoc::read_file("examples", 11);
-        assert_eq!(part_two(&input), None);
+        assert_eq!(part_two(&input), Some(2713310158));
     }
 }

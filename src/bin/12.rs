@@ -1,13 +1,5 @@
-use console::Term;
 use itertools::Itertools;
-use pathfinding::{directed::dijkstra, *};
-use rgb::*;
-use std::{
-    cmp::max,
-    collections::HashMap,
-    hash::{Hash, Hasher},
-};
-use textplots::{Chart, ColorPlot, Plot, Shape};
+use pathfinding::directed::dijkstra;
 
 fn find_possible_routes(
     cur: (usize, usize),

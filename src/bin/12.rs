@@ -38,10 +38,10 @@ fn print_path(
     Chart::new_with_y_range(
         180,
         90,
-        0.0 - 20.0 + offset,
-        max_x + 20.0 + offset,
-        0.0 - 20.0 + offset,
-        max_y + 20.0 + offset,
+        0.0 - 10.0 + offset,
+        max_x + 10.0 + offset,
+        0.0 - 5.0 + offset,
+        max_y + 5.0 + offset,
     )
     .linecolorplot(
         &Shape::Points(&[(start.1 as f32 + offset, start.0 as f32 + offset)]),
@@ -76,17 +76,18 @@ fn find_possible_routes(
     cur: (usize, usize),
     map: &Vec<Vec<i32>>,
     visited: &[(usize, usize)],
+    check: fn(d:i32) -> bool
 ) -> Vec<(usize, usize)> {
     let (y, x) = cur;
     let mut checks: Vec<(i32, i32)> = vec![];
     if y != 0 {
         checks.push((-1, 0));
     }
-    if y != map.len() - 1 {
-        checks.push((1, 0));
-    }
     if x != 0 {
         checks.push((0, -1));
+    }
+    if y != map.len() - 1 {
+        checks.push((1, 0));
     }
     if x != map[0].len() - 1 {
         checks.push((0, 1));
@@ -102,7 +103,7 @@ fn find_possible_routes(
     let mut res: Vec<(usize, usize)> = vec![];
     for (dy, dx) in final_checks {
         let delta_step = map[(y as i32 + dy) as usize][(x as i32 + dx) as usize] - map[y][x];
-        if delta_step < 2 {
+        if  check(delta_step) {
             res.push(((y as i32 + dy) as usize, (x as i32 + dx) as usize))
         }
     }
@@ -112,7 +113,7 @@ fn find_possible_routes(
 pub fn part_one(input: &str) -> Option<i32> {
     let mut visited: Vec<(usize, usize)> = vec![];
     let mut initial: (usize, usize) = (0, 0);
-    let mut end: (usize, usize) = (0, 0);
+    let mut finish: (usize, usize) = (0, 0);
     let map: Vec<Vec<i32>> = input
         .split('\n')
         .enumerate()
@@ -123,141 +124,109 @@ pub fn part_one(input: &str) -> Option<i32> {
                     if c == 'S' {
                         initial = (y, x);
                         visited.push((y, x));
-                        (b'a' - 1) as i32
+                        (b'a' - 1) as i32 - (b'a' - 1) as i32
                     } else if c == 'E' {
-                        end = (y, x);
-                        (b'z' + 1) as i32
+                        finish = (y, x);
+                        (b'z' + 1) as i32 - (b'a' - 1) as i32
                     } else {
-                        (c as u8) as i32
+                        (c as u8) as i32 - (b'a' - 1) as i32
                     }
                 })
                 .collect()
         })
         .collect();
 
+    let start = finish;
+    let end = initial;
+
+    let check = |d| d > -2;
+
     let result = dijkstra::dijkstra(
-        &initial,
+        &start,
         |cur| {
-            find_possible_routes(*cur, &map, &vec![])
+            find_possible_routes(*cur, &map, &vec![],check)
                 .into_iter()
                 .map(|p| (p, 1))
         },
         |&p| p == end,
     );
 
-    Some(result.unwrap().1)
+    return Some(result.unwrap().1);
 
-    // let term = console::Term::stdout();
-    // term.hide_cursor().unwrap();
-    // term.clear_screen().unwrap();
+    let term = console::Term::stdout();
+    term.hide_cursor().unwrap();
+    term.clear_screen().unwrap();
 
-    // let mut completed_routes: HashMap<String, Vec<(usize, usize)>> = HashMap::from([(
-    //     "".to_string() + &initial.0.to_string() + "," + &initial.1.to_string(),
-    //     vec![initial],
-    // )]);
+    let mut completed_routes: HashMap<String, Vec<(usize, usize)>> = HashMap::from([(
+        "".to_string() + &start.0.to_string() + "," + &start.1.to_string(),
+        vec![start],
+    )]);
 
-    // let mut edges: Vec<(usize, usize)> = vec![initial];
-    // let mut visited: Vec<(usize, usize)> = vec![initial];
-    // loop {
-    //     let mut new_completed_routes: HashMap<String, Vec<(usize, usize)>> = HashMap::from([]);
-    //     let mut new_edges: Vec<Vec<(usize, usize)>> = vec![];
-    //     for edge in edges.clone() {
-    //         let found = find_possible_routes(edge, &map, &visited);
-    //         new_edges.push(found.clone());
-    //         let prev_key = "".to_string() + &edge.0.to_string() + "," + &edge.1.to_string();
-    //         for p in found {
-    //             let new_key = "".to_string() + &p.0.to_string() + "," + &p.1.to_string();
-    //             let mut new_value = completed_routes.get(&prev_key).unwrap_or(&vec![]).clone();
-    //             new_value.push(p);
-    //             if completed_routes.get(&new_key).is_some() {
-    //                 if completed_routes.get(&new_key).unwrap().len() > new_value.len() {
-    //                     new_completed_routes.entry(new_key).or_insert(new_value);
-    //                 }
-    //             } else {
-    //                 new_completed_routes.entry(new_key).or_insert(new_value);
-    //             }
-    //         }
-    //     }
-    //     completed_routes = new_completed_routes;
+    let mut edges: Vec<(usize, usize)> = vec![start];
+    let mut visited: Vec<(usize, usize)> = vec![start];
+    loop {
+        let mut new_completed_routes: HashMap<String, Vec<(usize, usize)>> = HashMap::from([]);
+        let mut new_edges: Vec<Vec<(usize, usize)>> = vec![];
+        for edge in edges.clone() {
+            let found = find_possible_routes(edge, &map, &visited, check);
+            new_edges.push(found.clone());
+            let prev_key = "".to_string() + &edge.0.to_string() + "," + &edge.1.to_string();
+            for p in found {
+                let new_key = "".to_string() + &p.0.to_string() + "," + &p.1.to_string();
+                let mut new_value = completed_routes.get(&prev_key).unwrap_or(&vec![]).clone();
+                new_value.push(p);
+                if completed_routes.get(&new_key).is_some() {
+                    if completed_routes.get(&new_key).unwrap().len() > new_value.len() {
+                        new_completed_routes.entry(new_key).or_insert(new_value);
+                    }
+                } else {
+                    new_completed_routes.entry(new_key).or_insert(new_value);
+                }
+            }
+        }
+        completed_routes = new_completed_routes;
 
-    //     let formatted: Vec<(usize, usize)> = new_edges
-    //         .iter()
-    //         .flatten()
-    //         .unique()
-    //         .map(|(y, x)| (*y, *x))
-    //         .collect();
+        let formatted: Vec<(usize, usize)> = new_edges
+            .iter()
+            .flatten()
+            .unique()
+            .map(|(y, x)| (*y, *x))
+            .collect();
 
-    //     if formatted.iter().any(|p| p == &end) {
-    //         dbg!("found");
-    //         break;
-    //     }
+        if formatted.iter().any(|p| p == &end) {
+            dbg!("found");
+            break;
+        }
 
-    //     let mut tmp: Vec<Vec<(usize, usize)>> = vec![visited];
-    //     tmp.push(formatted.clone());
-    //     visited = tmp.iter().flatten().map(|(y, x)| (*y, *x)).collect();
-    //     edges = formatted;
-    //     print_path(&term, &visited, &map, initial, end, false);
-    // }
+        if formatted.len() == 0 {
+            dbg!("not found");
+            break;
+        }
 
-    // let end_key = "".to_string() + &end.0.to_string() + "," + &end.1.to_string();
-    // print_path(
-    //     &term,
-    //     &completed_routes.get(&end_key).unwrap(),
-    //     &map,
-    //     initial,
-    //     end,
-    //     true,
-    // );
-    // dbg!(completed_routes.get(&end_key).unwrap().len());
+        let mut tmp: Vec<Vec<(usize, usize)>> = vec![visited];
+        tmp.push(formatted.clone());
+        visited = tmp.iter().flatten().map(|(y, x)| (*y, *x)).collect();
+        edges = formatted;
+        print_path(&term, &edges, &map, start, end, false);
+    }
 
-    // let mut history_routes: Vec<Vec<(usize, usize)>> = vec![];
-    // let mut completed_routes: Vec<Vec<(usize, usize)>> = vec![];
-    // let mut routes: Vec<Vec<(usize, usize)>> = vec![vec![initial]];
-    // while !routes.is_empty() {
-    //     let mut tmp: Vec<Vec<(usize, usize)>> = vec![];
-    //     for (i, r) in routes.clone().iter().enumerate() {
-    //         let curr = *r.last().unwrap();
-    //         let found = find_possible_routes(curr, &map, r);
-    //         let mut new_routes: Vec<Vec<(usize, usize)>> = vec![];
-    //         for f in &found {
-    //             let mut current_route = r.clone();
-    //             current_route.push(*f);
-    //             if *f == end {
-    //                 completed_routes.push(current_route);
-    //             } else {
-    //                 new_routes.push(current_route);
-    //             }
-    //         }
+    let end_key = "".to_string() + &end.0.to_string() + "," + &end.1.to_string();
+    print_path(
+        &term,
+        &completed_routes.get(&end_key).unwrap(),
+        &map,
+        start,
+        end,
+        true,
+    );
+    Some((completed_routes.get(&end_key).unwrap().len() - 1) as i32)
 
-    //         tmp.splice((tmp.len()).., new_routes);
-    //     }
-    //     tmp.sort_by(|a, b| {
-    //         let last_a = a.last().unwrap();
-    //         let last_b = b.last().unwrap();
-    //         (last_b.1 as i32 - end.1 as i32)
-    //             .abs()
-    //             .partial_cmp(&(last_a.1 as i32 - end.1 as i32).abs())
-    //             .unwrap()
-    //     });
-
-    //     if !tmp.is_empty() {
-    //         let max_slice = if tmp.len() > 10 {
-    //             history_routes.splice(history_routes.len().., tmp[10..].to_vec());
-    //             10
-    //         } else { tmp.len() };
-    //         routes = tmp[0..max_slice].to_vec();
-    //     }else{
-    //         routes = history_routes.splice(0..10,[]).collect();
-    //     }
-
-    //     print_path(&term, &routes, &map, initial, end);
-    // }
-
-    // Some(completed_routes.iter().map(|r| r.len()).min().unwrap() as i32 - 1)
+    // +   504,
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
     None
+    // +   500,
 }
 
 fn main() {

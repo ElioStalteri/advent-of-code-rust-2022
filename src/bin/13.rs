@@ -96,6 +96,7 @@ pub fn part_one(input: &str) -> Option<usize> {
         })
         .collect_vec();
 
+    // DEBUG
     // let p = packets[1].clone();
     // let left = &p[0]; //  [1,[2,[3,[4,[5,6,7]]]],8,9]
     // let right = &p[1]; // [1,[2,[3,[4,[5,6,0]]]],8,9]
@@ -104,8 +105,8 @@ pub fn part_one(input: &str) -> Option<usize> {
     let mut correct_order = 0;
 
     for (i, p) in packets.iter().enumerate() {
-        let left = &p[0]; //  [1,[2,[3,[4,[5,6,7]]]],8,9]
-        let right = &p[1]; // [1,[2,[3,[4,[5,6,0]]]],8,9]
+        let left = &p[0];
+        let right = &p[1];
         if check_difference(&Some(left), &Some(right)) {
             correct_order += i + 1;
         }

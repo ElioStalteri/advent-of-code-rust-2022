@@ -65,14 +65,11 @@ fn get_map(input: &str, floor_y_delta: i32) -> (Vec<Vec<Type>>, (i32, i32)) {
 
     max_y += floor_y_delta;
 
-    dbg!(min_x, max_x, min_y, max_y);
-
     let mut map =
         vec![vec![Type::Empty; max_y.try_into().unwrap()]; (max_x - min_x).try_into().unwrap()];
 
     for rock in &rocks {
         let mut prev = &rock[0];
-        dbg!(prev);
         map[(prev.0) as usize][prev.1 as usize] = Type::Rock;
         for r in &rock[1..] {
             if r.0 == prev.0 {
@@ -104,21 +101,29 @@ fn get_map(input: &str, floor_y_delta: i32) -> (Vec<Vec<Type>>, (i32, i32)) {
     (tmp_map.clone(), (500 - min_x, 0))
 }
 
-fn compute_sand_fall(map: &mut Vec<Vec<Type>>, sand_pos: &(i32, i32)) -> bool {
+#[derive(Debug, Clone, PartialEq)]
+enum FallType {
+    Left,
+    Right,
+    Bottom,
+    Stop,
+}
+
+fn compute_sand_fall(map: &mut Vec<Vec<Type>>, sand_pos: &(i32, i32)) -> FallType {
     let mut s_pos = sand_pos.clone();
     let bottom = map.len() - 1;
     for i in (s_pos.1 as usize)..bottom {
         if map[i + 1][s_pos.0 as usize] != Type::Empty {
             if s_pos.0 - 1 < 0 {
-                return false;
+                return FallType::Left;
             }
             if map[i + 1][(s_pos.0 - 1) as usize] != Type::Empty {
                 if s_pos.0 + 1 > (map[i + 1].len() - 1) as i32 {
-                    return false;
+                    return FallType::Right;
                 }
                 if map[i + 1][(s_pos.0 + 1) as usize] != Type::Empty {
                     map[i][s_pos.0 as usize] = Type::Sand;
-                    return true;
+                    return FallType::Stop;
                 } else {
                     // go right
                     s_pos.0 += 1;
@@ -129,19 +134,18 @@ fn compute_sand_fall(map: &mut Vec<Vec<Type>>, sand_pos: &(i32, i32)) -> bool {
             }
         }
     }
-    return false;
+    return FallType::Bottom;
 }
 
 pub fn part_one(input: &str) -> Option<i32> {
     let (mut map, initial_sand_pos) = get_map(input, 0);
-    dbg!(initial_sand_pos);
-    let term = console::Term::stdout();
-    term.hide_cursor().unwrap();
-    term.clear_screen().unwrap();
-    while compute_sand_fall(&mut map, &initial_sand_pos) {
-        term.move_cursor_to(0, 0).unwrap();
-        print_map(&map);
-        std::thread::sleep(std::time::Duration::from_millis(10));
+    // let term = console::Term::stdout();
+    // term.hide_cursor().unwrap();
+    // term.clear_screen().unwrap();
+    while compute_sand_fall(&mut map, &initial_sand_pos) == FallType::Stop {
+        // term.move_cursor_to(0, 0).unwrap();
+        // print_map(&map);
+        // std::thread::sleep(std::time::Duration::from_millis(10));
     }
     print_map(&map);
 
@@ -155,16 +159,62 @@ pub fn part_one(input: &str) -> Option<i32> {
     )
 }
 
+fn prepend<T>(v: Vec<T>, s: &[T]) -> Vec<T>
+where
+    T: Clone,
+{
+    let mut tmp: Vec<_> = s.to_owned();
+    tmp.extend(v);
+    tmp
+}
+
 pub fn part_two(input: &str) -> Option<i32> {
-    let (mut map, initial_sand_pos) = get_map(input, 2);
-    dbg!(initial_sand_pos);
+    let (mut map, mut initial_sand_pos) = get_map(input, 2);
+    let last_row_index = map.len() - 1 as usize;
+    for r in map[last_row_index].iter_mut() {
+        *r = Type::Rock;
+    }
     let term = console::Term::stdout();
     term.hide_cursor().unwrap();
     term.clear_screen().unwrap();
-    while compute_sand_fall(&mut map, &initial_sand_pos) {
+    while map[initial_sand_pos.1 as usize][initial_sand_pos.0 as usize] != Type::Sand {
+        match compute_sand_fall(&mut map, &initial_sand_pos) {
+            FallType::Left => {
+                initial_sand_pos.0 +=1;
+                map = map
+                    .iter()
+                    .enumerate()
+                    .map(|(i, row)| {
+                        let type_to_push = if i == last_row_index {
+                            Type::Rock
+                        } else {
+                            Type::Empty
+                        };
+                        prepend(row.clone(), &[type_to_push])
+                    })
+                    .collect();
+            }
+            FallType::Right => {
+                map = map
+                    .iter()
+                    .enumerate()
+                    .map(|(i, row)| {
+                        let type_to_push = if i == last_row_index {
+                            Type::Rock
+                        } else {
+                            Type::Empty
+                        };
+                        let mut tmp = row.clone();
+                        tmp.push(type_to_push);
+                        tmp
+                    })
+                    .collect();
+            }
+            _ => {}
+        }
         term.move_cursor_to(0, 0).unwrap();
         print_map(&map);
-        std::thread::sleep(std::time::Duration::from_millis(10));
+        std::thread::sleep(std::time::Duration::from_millis(100));
     }
     print_map(&map);
 

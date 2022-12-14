@@ -214,7 +214,7 @@ pub fn part_two(input: &str) -> Option<i32> {
         }
         // term.move_cursor_to(0, 0).unwrap();
         // print_map(&map);
-        // std::thread::sleep(std::time::Duration::from_millis(10));
+        // std::thread::sleep(std::time::Duration::from_millis(1));
     }
     // print_map(&map);
 
@@ -247,6 +247,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let input = aoc::read_file("examples", 14);
-        assert_eq!(part_two(&input), None);
+        assert_eq!(part_two(&input), Some(93));
     }
 }

@@ -147,7 +147,7 @@ pub fn part_one(input: &str) -> Option<i32> {
         // print_map(&map);
         // std::thread::sleep(std::time::Duration::from_millis(10));
     }
-    print_map(&map);
+    // print_map(&map);
 
     Some(
         map.iter()
@@ -174,9 +174,9 @@ pub fn part_two(input: &str) -> Option<i32> {
     for r in map[last_row_index].iter_mut() {
         *r = Type::Rock;
     }
-    let term = console::Term::stdout();
-    term.hide_cursor().unwrap();
-    term.clear_screen().unwrap();
+    // let term = console::Term::stdout();
+    // term.hide_cursor().unwrap();
+    // term.clear_screen().unwrap();
     while map[initial_sand_pos.1 as usize][initial_sand_pos.0 as usize] != Type::Sand {
         match compute_sand_fall(&mut map, &initial_sand_pos) {
             FallType::Left => {
@@ -212,11 +212,11 @@ pub fn part_two(input: &str) -> Option<i32> {
             }
             _ => {}
         }
-        term.move_cursor_to(0, 0).unwrap();
-        print_map(&map);
-        std::thread::sleep(std::time::Duration::from_millis(100));
+        // term.move_cursor_to(0, 0).unwrap();
+        // print_map(&map);
+        // std::thread::sleep(std::time::Duration::from_millis(10));
     }
-    print_map(&map);
+    // print_map(&map);
 
     Some(
         map.iter()
